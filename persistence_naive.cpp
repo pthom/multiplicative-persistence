@@ -2,7 +2,6 @@
 #include <vector>
 #include <atomic>
 #include <future>
-#include <gmpxx.h>
 
 using BigInt = long long;
 
