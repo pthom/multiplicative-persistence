@@ -10,7 +10,9 @@ The [Multiplicative Persistence](http://mathworld.wolfram.com/MultiplicativePers
 
 Of course, the multiplicative persistence depends on the numeric base. In base 10,
 the maximum known multiplicative persistence is 11, which is obtained for the number 277777788888899.
-However it was not proved that this is the maximym multiplicative persistence in base 10 (although it is conjectured).
+
+However, it was not proved that this is the maximum multiplicative persistence in base 10 (although it is conjectured).
+
 According to Wolfram Alpha :
 > There is no number <10^(233) with multiplicative persistence  >11 (Carmody 2001; updating Wells 1986, p. 78)
 
@@ -19,8 +21,8 @@ According to Wolfram Alpha :
 
 The intent of this project is to be as fast as possible, and to be able to explore numbers with several hundred of digits as fast as possible (and of course to go beyond 10^(233)).
 
-As mentioned in the [numberphile video](https://www.youtube.com/watch?v=Wim9WJeDTHQ)", it is possible to largely reduce the numbers to be searched:
-* The digits sequence shall be ordered from smallest to biggest (the order does not matter!)
+As mentioned in the [numberphile video](https://www.youtube.com/watch?v=Wim9WJeDTHQ)", it is possible to largely reduce the numbers to be searched with the following heuristics:
+* The digits sequence shall be ordered from smallest to biggest: the order of the digits does not matter.
 * With the following rules for the digits:
     * "0" : shall never appear
     * "1" : shall never appear
@@ -36,11 +38,11 @@ As mentioned in the [numberphile video](https://www.youtube.com/watch?v=Wim9WJeD
 
 ## Current architecture
 
-This project compiles *only* with clang >= 7 with corountines enabled.
+This project compiles *only* with clang >= 7 with coroutines enabled.
 
 It uses :
-* [conan](conan.io) in order to gather the third parties below
 * coroutines (-fcoroutines-ts)
+* [conan](conan.io) in order to gather the third parties below
 * [LoopPerfect/conduit](https://github.com/LoopPerfect/conduit) : High Performance Streams Based on Coroutine TS (see file conduit-unity.hpp)
 * [gmplib](https://gmplib.org/): The GNU Multiple Precision Arithmetic Library
 * [spdlog](https://github.com/gabime/spdlog): a Fast C++ logging library.
@@ -74,5 +76,5 @@ On my computer, this program can compute
 
 The performance is O(NbDigits^4) (see [graph](https://docs.google.com/spreadsheets/d/1gnz9wBsdIKxQY2LeKAtH20oGJYtueMJlGWT4QxQer4k/edit#gid=1408557870))
 
-I stopped at 10^407, so that I can safely say that
-> There is no number <10^(407) with multiplicative persistence
+I stopped at 10^411 (after 1 hour), so that I can safely say that
+> There is no number <10^(411) with multiplicative persistence > 11
