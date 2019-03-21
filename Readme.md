@@ -73,3 +73,6 @@ On my computer, this program can compute
 * up to 10^(400) in 55 minutes (using 16 cores)
 
 The performance is O(NbDigits^4) (see [graph](https://docs.google.com/spreadsheets/d/1gnz9wBsdIKxQY2LeKAtH20oGJYtueMJlGWT4QxQer4k/edit#gid=1408557870))
+
+I stopped at 10^407, so that I can safely say that
+> There is no number <10^(407) with multiplicative persistence
