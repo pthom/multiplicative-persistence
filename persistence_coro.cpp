@@ -1,24 +1,25 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <atomic>
 #include <future>
 #include <array>
 #include <gmpxx.h>
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio.hpp>
+#include "spdlog/spdlog.h"
 #include <experimental/coroutine>
 #include "conduit-unity.hpp"
 
-// https://www.youtube.com/watch?v=Wim9WJeDTHQ
-
 using BigInt = mpz_class;
+BigInt currentMax = 0;
+std::mutex currentMax_Mutex;
 
 inline BigInt OneTransform(BigInt v)
 {
   BigInt current = v;
   BigInt r = current % 10;
-  while(current > 10) {
+  while(current > 10)
+  {
     current = current / 10;
     r = r * (current % 10);
   }
@@ -65,11 +66,9 @@ AllPossibleTripletsWithSum(int sum)
 inline BigInt DigitsToBigInt(const std::vector<int> & digits)
 {
   std::stringstream ss;
-  for (auto d : digits) {
-    char c = '0' + d;
-    ss << c;
-  }
-  return BigInt( ss.str() );
+  for (auto d : digits)
+    ss << d;
+  return BigInt(ss.str());
 }
 
 std::string showDigits(std::vector<int> digits)
@@ -80,23 +79,26 @@ std::string showDigits(std::vector<int> digits)
   return ss.str();
 }
 
-conduit::seq<BigInt> testedNumbersSequences(int nbDigits)
+// candidateNumbersWithbNDigits : returns a sequence
+// of all the candidate numbers that shall be tested
+// for a given number of digits
+//
+// The digits sequence shall be ordered from smallest to biggest
+// with the following rules:
+// "0" : None
+// "1" : None
+// "2" : 1 max
+// "3" : 1 max
+// "4" : 1 max if there is no 2
+// "5" : None
+// "6" : None
+// "7" : as many as desired
+// "8" : as many as desired
+// "9" : as many as desired
+conduit::seq<BigInt> candidateNumbersWithbNDigits(int nbDigits)
 {
-  // 0 : Aucun
-  // 1 : Aucun
-  // 2 : 1 max
-  // 3 : 1 max
-  // 4 : 1 max si pas de 2
-  // 5 : Aucun
-  // 6 : Aucun
-  // 7 : plein
-  // 8 : Plein
-  // 9 : Plein
-
   std::vector<int> digits(nbDigits, 5); // initialize all with 5 (5 is an incoherent value)
-
   auto range_3 = std::vector<int> { 1, 0 };
-
   auto range_2_4 = std::vector< std::pair<int, int> >
   {
     { 1, 0 },
@@ -126,14 +128,7 @@ conduit::seq<BigInt> testedNumbersSequences(int nbDigits)
         idx234++;
       }
 
-      //std::cout << "nb_2=" << nb_2 << " nb_3=" << nb_3 << " nb_4=" << nb_4 << " digits=" << showDigits(digits) << std::endl;
-
-
       int nb_789 = nbDigits - nb_2 - nb_3 - nb_4;
-      //std::cout << "nb_789=" << nb_789 << std::endl;
-
-      //std::cout << "nb_2=" << nb_2 << " nb_3=" << nb_3 << " nb_4=" << nb_4 << " nb_789=" << nb_789 << std::endl;
-
       auto all_triplets_789 = AllPossibleTripletsWithSum(nb_789);
       for (auto triplet_789 : all_triplets_789 )
       {
@@ -153,38 +148,41 @@ conduit::seq<BigInt> testedNumbersSequences(int nbDigits)
           digits[idx789] = 9;
           idx789++;
         }
-
         auto bigInt = DigitsToBigInt(digits);
         co_yield bigInt;
       }
     }
   }
-
 }
 
-BigInt currentMax;
 
 int main()
 {
-
   auto process_for_nb_digits = [](int nb_digits) {
-    std::cout << "nb_digits=" << nb_digits << std::endl;
-    for (auto number: testedNumbersSequences(nb_digits))
+    spdlog::info("Processing nb_digits={}", nb_digits);
+    for (auto number: candidateNumbersWithbNDigits(nb_digits))
     {
       auto persistence = PersistenceValue(number);
-      if (persistence > currentMax)
+      bool isNewMax = [&]() {
+        std::lock_guard lock(currentMax_Mutex);
+        if (persistence <= currentMax)
+          return false;
+        else {
+          currentMax = persistence;
+          return true;
+        }
+      }();
+      if (isNewMax)
       {
-        std::cout << "New max at " << number.get_str() << " with persistence=" << persistence.get_str() << std::endl;
+        spdlog::warn("New max at {} with persistence={}", number.get_str(), persistence.get_str());
         currentMax = persistence;
       }
     }
   };
 
-
-  // Launch the pool with four threads.
+  // Launch the search inside a pool thread
   int nb_cores = 16;
   boost::asio::thread_pool pool(nb_cores);
-
   for (auto nb_digits : numbers_between(4, 600))
   {
     boost::asio::post(pool, [nb_digits, &process_for_nb_digits]() {
@@ -193,7 +191,7 @@ int main()
   }
   pool.join();
 
-  //for (auto v: testedNumbersSequences(20))
+  //for (auto v: candidateNumbersWithbNDigits(20))
     //std::cout << v.get_str()<< "\n";
 
   //for (auto v: AllPossibleTripletsWithSum(1))
