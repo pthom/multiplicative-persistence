@@ -1,4 +1,4 @@
-# Sandox around multiplicative persistence
+# Sandbox around multiplicative persistence
 
 This is a toy project inspired by the numberphile video "[What's special about 277777788888899?](https://www.youtube.com/watch?v=Wim9WJeDTHQ)".
 
