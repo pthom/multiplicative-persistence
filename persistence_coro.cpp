@@ -16,10 +16,19 @@ std::mutex currentMax_Mutex;
 
 inline BigInt OneTransform(BigInt v)
 {
-  BigInt current = v;
-  BigInt r = current % 10;
+  thread_local BigInt current, r;
+  current = v;
+  r = current % 10;
   while(current > 10)
   {
+    // WIP / Optim (quotient and remainder in one pass)
+    // --------
+    // thread_local BigInt quotient, remainder;
+    // thread_local const auto ten = BigInt(10);
+    // mpz_cdiv_qr (quotient.get_mpz_t(), remainder.get_mpz_t(), current.get_mpz_t(), ten.get_mpz_t());
+    // current = quotient;
+    // r = r * remainder;
+
     current = current / 10;
     r = r * (current % 10);
   }
@@ -65,10 +74,13 @@ AllPossibleTripletsWithSum(int sum)
 
 inline BigInt DigitsToBigInt(const std::vector<int> & digits)
 {
-  std::stringstream ss;
-  for (auto d : digits)
-    ss << d;
-  return BigInt(ss.str());
+  thread_local char buffer[10000];
+  auto len = digits.size();
+  for (std::size_t i = 0; i < len; i++)
+    buffer[i] = '0' + digits[i];
+  buffer[len] = '\0';
+  auto r = BigInt(buffer);
+  return r;
 }
 
 std::string showDigits(std::vector<int> digits)
@@ -183,7 +195,7 @@ int main()
   // Launch the search inside a pool thread
   int nb_cores = 16;
   boost::asio::thread_pool pool(nb_cores);
-  for (auto nb_digits : numbers_between(4, 600))
+  for (auto nb_digits : numbers_between(4, 2000))
   {
     boost::asio::post(pool, [nb_digits, &process_for_nb_digits]() {
       process_for_nb_digits(nb_digits);
