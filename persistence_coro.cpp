@@ -3,7 +3,6 @@
 //#define ALGO_USE_RANGES
 
 #include <iostream>
-#include <sstream>
 #include <vector>
 #include <future>
 #include <array>
@@ -11,6 +10,7 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio.hpp>
 #include "spdlog/spdlog.h"
+#include "stopwatch.hpp"
 
 #ifdef ALGO_USE_COROUTINES
 #include <experimental/coroutine>
@@ -27,19 +27,6 @@ using BigInt = mpz_class;
 BigInt gCurrentMaxPersistence = 0;
 std::mutex gCurrentMaxMutex;
 
-class stopwatch
-{
-public:
-    stopwatch() : beg_(clock::now()) {}
-
-    double elapsed() const {
-        return std::chrono::duration_cast<second>
-            (clock::now() - beg_).count(); }
-private:
-    typedef std::chrono::high_resolution_clock clock;
-    typedef std::chrono::duration<double, std::ratio<1>> second;
-    std::chrono::time_point<clock> beg_;
-};
 
 inline BigInt OneTransform(BigInt digits)
 {
@@ -62,8 +49,7 @@ inline BigInt OneTransform(BigInt digits)
 inline int PersistenceValue(BigInt v)
 {
   int n = 0;
-  while(v >= 10)
-  {
+  while(v >= 10) {
     v = OneTransform(v);
     n++;
   }
@@ -128,13 +114,8 @@ inline BigInt DigitsToBigInt(const std::vector<int> & digits)
   return r;
 }
 
-std::string showDigits(std::vector<int> digits)
-{
-  std::stringstream ss;
-  for (auto d: digits)
-    ss << d;
-  return ss.str();
-}
+
+#if ! defined(ALGO_USE_RANGES)
 
 // candidateNumbersWithNbDigits : returns a sequence
 // of all the candidate numbers that shall be tested
@@ -152,9 +133,6 @@ std::string showDigits(std::vector<int> digits)
 // "7" : as many as desired
 // "8" : as many as desired
 // "9" : as many as desired
-
-#if ! defined(ALGO_USE_RANGES)
-
 #if defined(ALGO_USE_VECTORS)
 std::vector<BigInt> candidateNumbersWithNbDigits(int nbDigits)
 #elif defined(ALGO_USE_COROUTINES)
@@ -235,16 +213,17 @@ conduit::seq<BigInt> candidateNumbersWithNbDigits(int nbDigits)
 
 #elif defined(ALGO_USE_RANGES)
 
-auto range_3 = std::vector<int> { 1, 0 };
-auto range_2_4 = std::vector< std::pair<int, int> >
-{
-  { 1, 0 },
-  { 0, 1 },
-  { 0, 0 }
-};
 
 auto candidateNumbersWithNbDigits(int nbDigits)
 {
+  static auto range_3 = std::vector<int> { 1, 0 };
+  static auto range_2_4 = std::vector< std::pair<int, int> >
+  {
+    { 1, 0 },
+    { 0, 1 },
+    { 0, 0 }
+  };
+
   return view::for_each(range_3, [=](int nb_3)
   {
     return view::for_each(range_2_4, [=](std::pair<int, int> v_2_4)
@@ -398,7 +377,7 @@ int main()
   // Launch the search inside a pool thread
   int nb_cores = 16;
   boost::asio::thread_pool pool(nb_cores);
-  for (auto nb_digits : numbers_between(4, 2000))
+  for (auto nb_digits : numbers_between(4, 100))
   {
     boost::asio::post(pool, [nb_digits]() {
       process_for_nb_digits(nb_digits);
