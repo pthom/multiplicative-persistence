@@ -22,7 +22,18 @@
 using namespace ranges;
 #endif
 
+#ifdef UNIT_TEST
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
+#endif
+
 using BigInt = mpz_class;
+
+std::ostream & operator<<(std::ostream & os, BigInt v)
+{
+  os << v.get_str();
+  return os;
+}
 
 BigInt gCurrentMaxPersistence = 0;
 std::mutex gCurrentMaxMutex;
@@ -310,35 +321,6 @@ bool checkConjecture237(BigInt n)
   return true;
 }
 
-void playground()
-{
-    // std::cout << PersistenceValue(BigInt("277777788888899")).get_str() << std::endl;
-  // return 0;
-
-  // BigInt n("4553435645654334326577686587487773537637376387367676765753756664357452435234523534343553265654654437645657474777737"), d(10);
-  // BigInt quotient(0), remainder(0);
-  // mpz_fdiv_qr_ui (quotient.get_mpz_t(), remainder.get_mpz_t(), n.get_mpz_t(), 10);
-  // std::cout << "n=" << n.get_str() << std::endl
-  //   << "q=" << quotient.get_str() << " r=" << remainder.get_str() << "\n";
-  // return 0;
-
-  // BigInt n("4553435645654334326577686587487773537637376387367676765753756664357452435234523534343553265654654437645657474777737"), d(10);
-  // BigInt quotient = n / 10;
-  // BigInt remainder = n % 10;
-  // std::cout << "n=" << n.get_str() << " d=" << d.get_str()
-  //   << " quotient=" << quotient.get_str() << " remainder=" << remainder.get_str() << "\n";
-  // return 0;
-
-
-
-
-  // for (auto v: candidateNumbersWithNbDigits(4))
-  //   std::cout << v.get_str()<< "\n";
-
-  // for (auto v: AllPossibleTripletsWithSum(4))
-  //   std::cout << v[0] << "," << v[1] << "," << v[2] << "\n";
-}
-
 void process_for_nb_digits(int nb_digits)
 {
   spdlog::info("Starting nb_digits={}", nb_digits);
@@ -366,7 +348,7 @@ void process_for_nb_digits(int nb_digits)
   }
 }
 
-
+#ifndef UNIT_TEST
 int main()
 {
   // Launch the search inside a pool thread
@@ -380,3 +362,108 @@ int main()
   }
   pool.join();
 }
+
+
+#else
+
+///////   Unit Tests below
+TEST_CASE("Playground")
+{
+  // std::cout << PersistenceValue(BigInt("277777788888899")).get_str() << std::endl;
+  // return 0;
+
+  // for (auto v: candidateNumbersWithNbDigits(3))
+  //   std::cout << v.get_str()<< "\n";
+
+  // for (auto v: AllPossibleTripletsWithSum(4))
+  //   std::cout << v[0] << "," << v[1] << "," << v[2] << "\n";
+}
+
+TEST_CASE("BigInt divide & remainder by ten")
+{
+  BigInt n("4553435645654334326577686587487773537637376387367676765753756664357452435234523534343553265654654437645657474777737"), d(10);
+  BigInt quotient(0), remainder(0);
+  mpz_fdiv_qr_ui (quotient.get_mpz_t(), remainder.get_mpz_t(), n.get_mpz_t(), 10);
+  CHECK(quotient == BigInt("455343564565433432657768658748777353763737638736767676575375666435745243523452353434355326565465443764565747477773"));
+  CHECK(remainder == BigInt("7"));
+}
+
+TEST_CASE("AllPossibleTripletsWithSum")
+{
+  std::vector<std::array<int, 3>> triplets4;
+  for (auto v: AllPossibleTripletsWithSum(4))
+    triplets4.push_back(v);
+
+  std::vector<std::array<int, 3>> expected {
+    { 0,0,4 },
+    { 0,1,3 },
+    { 0,2,2 },
+    { 0,3,1 },
+    { 0,4,0 },
+    { 1,0,3 },
+    { 1,1,2 },
+    { 1,2,1 },
+    { 1,3,0 },
+    { 2,0,2 },
+    { 2,1,1 },
+    { 2,2,0 },
+    { 3,0,1 },
+    { 3,1,0 },
+    { 4,0,0 }
+  };
+  bool are_equal = (expected == triplets4);
+  CHECK(are_equal);
+}
+
+TEST_CASE("candidateNumbersWithNbDigits")
+{
+  std::vector<BigInt> candidates_3digits;
+  for (auto v: candidateNumbersWithNbDigits(3))
+    candidates_3digits.push_back(v);
+  std::vector<BigInt> expected {
+    237,
+    238,
+    239,
+    347,
+    348,
+    349,
+    377,
+    378,
+    388,
+    379,
+    389,
+    399,
+    277,
+    278,
+    288,
+    279,
+    289,
+    299,
+    477,
+    478,
+    488,
+    479,
+    489,
+    499,
+    777,
+    778,
+    788,
+    888,
+    779,
+    789,
+    889,
+    799,
+    899,
+    999
+  };
+  bool are_equal = (expected == candidates_3digits);
+  CHECK(are_equal);
+}
+
+TEST_CASE("test some values")
+{
+  CHECK(PersistenceValue(BigInt("277777788888899")) == 11);
+  CHECK(PersistenceValue(BigInt("377777777777777777789999999")) == 4);
+}
+
+#endif

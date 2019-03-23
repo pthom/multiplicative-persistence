@@ -2,6 +2,7 @@
 boost/1.69.0@conan/stable
 spdlog/1.3.1@bincrafters/stable
 range-v3/0.4.0@ericniebler/stable
+doctest/2.2.0@bincrafters/stable
 
 [generators]
 cmake
