@@ -11,4 +11,4 @@ conan_basic_setup()
 
 add_executable(persistence_coro persistence_coro.cpp)
 target_compile_options(persistence_coro PRIVATE "-O3" "-std=c++2a" "-fcoroutines-ts" "-stdlib=libc++")
-target_link_libraries(persistence_coro PRIVATE gmp ${CONAN_LIBS} pthread)
+target_link_libraries(persistence_coro PRIVATE gmp ${CONAN_LIBS} pthread c++)

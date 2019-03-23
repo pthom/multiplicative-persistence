@@ -51,8 +51,11 @@ It uses :
 
 ## Building and running the project
 
+Install gmp: On OSX run `brew install gmp`; and on Linux run `sudo apt-get install libgmp-dev`.
+
 ```bash
 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+conan remote add ericniebler https://api.bintray.com/conan/range-v3/range-v3
 
 mkdir build
 cd build
@@ -78,3 +81,14 @@ The performance is O(NbDigits^4) (see [graph](https://docs.google.com/spreadshee
 
 I stopped at 10^411 (after 1 hour), so that I can safely say that
 > There is no number <10^(411) with multiplicative persistence > 11
+
+## Comparing performance of different algorithms
+
+With ALGO_USE_COROUTINES
+TIME:200,8.79611 Memory: 840KB
+
+With ALGO_USE_VECTORS
+TIME:200,8.78177 Memory: 188MB
+
+With ALGO_USE_RANGES
+TIME:200,9.05088 Memory: 860KB
