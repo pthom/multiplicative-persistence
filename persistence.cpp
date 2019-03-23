@@ -1,5 +1,5 @@
 //#define ALGO_USE_VECTORS
-#define ALGO_USE_COROUTINES
+//#define ALGO_USE_COROUTINES
 //#define ALGO_USE_RANGES
 
 #include <iostream>
@@ -116,7 +116,6 @@ inline BigInt DigitsToBigInt(const std::vector<int> & digits)
 
 
 #if ! defined(ALGO_USE_RANGES)
-
 // candidateNumbersWithNbDigits : returns a sequence
 // of all the candidate numbers that shall be tested
 // for a given number of digits
@@ -212,8 +211,6 @@ conduit::seq<BigInt> candidateNumbersWithNbDigits(int nbDigits)
 }
 
 #elif defined(ALGO_USE_RANGES)
-
-
 auto candidateNumbersWithNbDigits(int nbDigits)
 {
   static auto range_3 = std::vector<int> { 1, 0 };
@@ -298,7 +295,7 @@ inline int TestOneNumber(BigInt number)
 }
 
 // Checks the conjecture :
-// all maximum persistence number > 10^200
+// all maximum persistence number >= 10^157
 // are under the form 237777777....
 bool checkConjecture237(BigInt n)
 {
@@ -372,8 +369,6 @@ void process_for_nb_digits(int nb_digits)
 
 int main()
 {
-  // playground(); return 0;
-
   // Launch the search inside a pool thread
   int nb_cores = 16;
   boost::asio::thread_pool pool(nb_cores);
